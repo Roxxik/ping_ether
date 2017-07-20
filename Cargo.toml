@@ -1,0 +1,7 @@
+[package]
+name = "ndscrwlr"
+version = "0.1.0"
+authors = ["Stefan Nitz <nitz.stefan@googlemail.com>"]
+
+[dependencies]
+rlp = "*"
