@@ -5,3 +5,8 @@ authors = ["Stefan Nitz <nitz.stefan@googlemail.com>"]
 
 [dependencies]
 rlp = "*"
+secp256k1 = "*"
+lazy_static = "*"
+clap = "*"
+rand = "*"
+rust-crypto = "*"
