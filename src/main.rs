@@ -8,7 +8,7 @@ extern crate rand;
 extern crate crypto;
 
 use std::io::{ self, Read, Write };
-use std::net::{ Ipv4Addr as _Ipv4Addr, AddrParseError };
+use std::net::{ Ipv4Addr, AddrParseError };
 use std::ops::Deref;
 use std::time;
 use std::net::UdpSocket;
@@ -64,22 +64,6 @@ impl From<Box<Any + Send>> for Error {
     }
 }
 
-#[derive(Clone, Copy)]
-struct Ipv4Addr(_Ipv4Addr);
-
-impl Deref for Ipv4Addr {
-    type Target = _Ipv4Addr;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl Encodable for Ipv4Addr {
-    fn rlp_append(&self, s: &mut RlpStream) {
-        self.octets().to_vec().rlp_append(s)
-    }
-}
-
 //only ipv4 for now:
 #[derive(Clone, Copy)]
 struct Endpoint {
@@ -97,7 +81,7 @@ impl Endpoint {
 impl Encodable for Endpoint {
     fn rlp_append(&self, s: &mut RlpStream) {
         s.begin_unbounded_list();
-        self.address.rlp_append(s);
+        self.address.octets().to_vec().rlp_append(s);
         self.udp_port.rlp_append(s);
         self.tcp_port.rlp_append(s);
         s.complete_unbounded_list();
@@ -185,7 +169,7 @@ impl PingServer {
         let ping = PingNode::new(self.endpoint, endpoint);
         let packet = self.mk_packet(ping)?;
         println!("sending ping");
-        let _size = self.socket.send_to(&packet, (endpoint.address.0, endpoint.udp_port))?;
+        let _size = self.socket.send_to(&packet, (endpoint.address, endpoint.udp_port))?;
         Ok(())
     }
 }
@@ -208,9 +192,9 @@ fn ma1n() -> Result<(), Error> {
         let mut f = File::create(private_key_path)?;
         f.write(key_raw)?;
     }
-    let my_address = Ipv4Addr(_Ipv4Addr::from_str("127.0.0.1")?);
+    let my_address = Ipv4Addr::from_str("127.0.0.1")?;
     let my_endpoint = Endpoint::new(my_address, 30303, 30303);
-    let other_address = Ipv4Addr(_Ipv4Addr::from_str("13.93.211.84")?);
+    let other_address = Ipv4Addr::from_str("13.93.211.84")?;
     let other_endpoint = Endpoint::new(other_address, 30303, 30303);
     let server = Arc::new(PingServer::new(my_endpoint, private_key_path)?);
     let thread_server = server.clone();
